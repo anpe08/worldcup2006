@@ -16,9 +16,7 @@ if (!DATABASE_URL) {
 }
 
 // Translate football-data.org player names to names used in this DB
-const PLAYER_NAME_MAP = {
-  'Vinicius Junior': 'Vinícius Júnior',
-};
+const PLAYER_NAME_MAP = {};
 
 function mapPlayerName(apiName) {
   return PLAYER_NAME_MAP[apiName] ?? apiName;
@@ -54,16 +52,7 @@ async function run() {
 
     log(`Fetched ${scorers.length} scorer(s) from API.`);
 
-    // Fetch all player names that at least one participant predicted
-    const { rows: predicted } = await pool.query(`
-      SELECT DISTINCT unnest(ARRAY[player_1, player_2, player_3]) AS player_name
-      FROM goalscorer_predictions
-      WHERE player_1 IS NOT NULL OR player_2 IS NOT NULL OR player_3 IS NOT NULL
-    `);
-    const predictedNames = new Set(predicted.map(r => r.player_name).filter(Boolean));
-
     let updated = 0;
-    let skipped = 0;
 
     for (const entry of scorers) {
       const apiName = entry.player?.name;
@@ -71,11 +60,6 @@ async function run() {
 
       const dbName = mapPlayerName(apiName);
       const goals = entry.goals ?? 0;
-
-      if (!predictedNames.has(dbName)) {
-        skipped++;
-        continue;
-      }
 
       await pool.query(`
         INSERT INTO actual_goalscorers (player_name, goals)
@@ -88,7 +72,7 @@ async function run() {
       updated++;
     }
 
-    log(`Done. Updated ${updated} predicted player(s), skipped ${skipped} unpredicted.`);
+    log(`Done. Updated ${updated} player(s).`);
 
   } finally {
     await pool.end();

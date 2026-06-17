@@ -20,7 +20,9 @@ const TEAM_NAME_MAP = {
   'United States': 'USA',
   "Côte d'Ivoire": 'Ivory Coast',
   'Democratic Republic of the Congo': 'DR Congo',
+  'Congo DR': 'DR Congo',
   'Bosnia-Herzegovina': 'Bosnia and Herzegovina',
+  'Cape Verde Islands': 'Cape Verde',
 };
 
 function mapTeamName(apiName) {

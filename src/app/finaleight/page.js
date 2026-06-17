@@ -136,7 +136,7 @@ export default function FinalEight() {
       {/* Scoring Guide */}
       <div className="glass-card" style={{ marginBottom: '28px', maxWidth: 640, padding: '20px 24px' }}>
         <h3 style={{ color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 700, marginBottom: '16px' }}>📋 How Points Are Awarded</h3>
-        <div style={{ overflowX: 'auto' }}>
+        <div className="table-scroll-wrapper" style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', marginBottom: '16px' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>

@@ -109,7 +109,7 @@ export default function Predictions() {
               </div>
 
               {/* Scrollable table */}
-              <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderTop: 'none', borderRadius: '0 0 12px 12px', background: 'rgba(255,255,255,0.015)' }}>
+              <div className="table-scroll-wrapper" style={{ overflowX: 'auto', border: '1px solid var(--border)', borderTop: 'none', borderRadius: '0 0 12px 12px', background: 'rgba(255,255,255,0.015)' }}>
                 <table style={{ borderCollapse: 'collapse', fontSize: '0.82rem', tableLayout: 'auto' }}>
                   <thead>
                     <tr>

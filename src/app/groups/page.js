@@ -115,7 +115,7 @@ export default function Groups() {
         <div style={{
           display: 'grid',
           gap: '24px',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
           marginBottom: '40px',
         }}>
           {groupKeys.map(groupName => {

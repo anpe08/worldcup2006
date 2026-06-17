@@ -277,24 +277,91 @@ function GoalscorersTab({ data, loading }) {
   if (loading) return <p style={{ color: 'var(--text-secondary)' }}>Loading…</p>;
   if (!data)   return null;
 
-  const { total, players } = data;
+  const { total, players, topScorers } = data;
 
   if (total === 0) {
     return <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>No goalscorer predictions have been submitted yet.</p>;
   }
 
+  const hasAnyGoals = players.some(p => p.goals > 0);
+  const predictedNames = new Set(players.map(p => p.name));
+
   return (
     <div>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '28px' }}>
+      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: topScorers?.length ? '16px' : '28px' }}>
         {total} participant{total !== 1 ? 's' : ''} each picked 3 players — % shows how many included this player
       </p>
+
+      {topScorers?.length > 0 && (
+        <div style={{
+          marginBottom: '28px',
+          padding: '14px 20px',
+          borderRadius: '12px',
+          background: 'rgba(250,204,21,0.08)',
+          border: '1px solid rgba(250,204,21,0.25)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+        }}>
+          <span style={{ fontSize: '1.4rem' }}>🥇</span>
+          <div>
+            <div style={{ fontSize: '0.72rem', color: 'rgba(250,204,21,0.7)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '600', marginBottom: '6px' }}>
+              Current Tournament Top Scorer{topScorers.length > 1 ? 's' : ''} — {topScorers[0].goals} ⚽
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {topScorers.map(ts => {
+                const unpicked = !predictedNames.has(ts.name);
+                return (
+                  <div key={ts.name} style={{ color: 'white', fontWeight: '700', fontSize: '0.97rem' }}>
+                    {ts.name}
+                    {unpicked && (
+                      <span style={{ marginLeft: '10px', fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: '400' }}>
+                        — not picked by anyone
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="glass-card" style={{ padding: '20px 24px' }}>
         <h3 style={{ fontSize: '0.88rem', fontWeight: '700', marginBottom: '20px', color: 'white' }}>⚽ Most Picked Players</h3>
-        <RankingList
-          items={players.map(p => ({ value: p.name, count: p.count }))}
-          total={total}
-          maxItems={20}
-        />
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
+          <thead>
+            <tr style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <th style={{ textAlign: 'left', paddingBottom: '10px', fontWeight: '600', width: '28px' }}>#</th>
+              <th style={{ textAlign: 'left', paddingBottom: '10px', fontWeight: '600' }}>Player</th>
+              <th style={{ textAlign: 'right', paddingBottom: '10px', fontWeight: '600', whiteSpace: 'nowrap' }}>Picked by</th>
+              {hasAnyGoals && (
+                <th style={{ textAlign: 'right', paddingBottom: '10px', fontWeight: '600', whiteSpace: 'nowrap' }}>Goals</th>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {players.slice(0, 20).map((p, i) => {
+              const pct = total > 0 ? Math.round((p.count / total) * 100) : 0;
+              return (
+                <tr key={p.name} style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <td style={{ padding: '9px 0', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{i + 1}</td>
+                  <td style={{ padding: '9px 8px 9px 0', fontWeight: i === 0 ? '700' : '400', color: 'white' }}>{p.name}</td>
+                  <td style={{ padding: '9px 0', textAlign: 'right', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                    {pct}% <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>({p.count})</span>
+                  </td>
+                  {hasAnyGoals && (
+                    <td style={{ padding: '9px 0 9px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      {p.goals > 0
+                        ? <span style={{ color: '#4ade80', fontWeight: '700' }}>{p.goals} ⚽</span>
+                        : <span style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>—</span>
+                      }
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );

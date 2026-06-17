@@ -257,7 +257,7 @@ export default function Leaderboard() {
       </div>
 
       {/* Table */}
-      <div className="glass-card" style={{ overflowX: 'auto', padding: 0, marginBottom: '28px' }}>
+      <div className="glass-card table-scroll-wrapper" style={{ overflowX: 'auto', padding: 0, marginBottom: '28px' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(0,0,0,0.3)' }}>

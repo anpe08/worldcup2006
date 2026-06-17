@@ -537,11 +537,11 @@ export default function MatchesDashboard() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', margin: '0 4px', flexShrink: 0 }}>
                 <input type="number" min="0" max="20" className="input-field" disabled={isPast}
-                  style={{ width: '44px', textAlign: 'center', fontSize: '1.1rem', fontWeight: 'bold', padding: '6px 2px', opacity: isPast ? 0.45 : 1, cursor: isPast ? 'not-allowed' : 'auto' }}
+                  style={{ width: '48px', minHeight: '44px', textAlign: 'center', fontSize: '1.1rem', fontWeight: 'bold', padding: '6px 2px', opacity: isPast ? 0.45 : 1, cursor: isPast ? 'not-allowed' : 'auto' }}
                   value={m.predicted_home_score ?? ''} onChange={e => handleScoreChange(m.id, 'predicted_home_score', e.target.value)} />
                 <span style={{ color: 'var(--text-secondary)', fontWeight: 700 }}>–</span>
                 <input type="number" min="0" max="20" className="input-field" disabled={isPast}
-                  style={{ width: '44px', textAlign: 'center', fontSize: '1.1rem', fontWeight: 'bold', padding: '6px 2px', opacity: isPast ? 0.45 : 1, cursor: isPast ? 'not-allowed' : 'auto' }}
+                  style={{ width: '48px', minHeight: '44px', textAlign: 'center', fontSize: '1.1rem', fontWeight: 'bold', padding: '6px 2px', opacity: isPast ? 0.45 : 1, cursor: isPast ? 'not-allowed' : 'auto' }}
                   value={m.predicted_away_score ?? ''} onChange={e => handleScoreChange(m.id, 'predicted_away_score', e.target.value)} />
               </div>
               <div style={{ flex: 1, fontWeight: 700, fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '5px', minWidth: 0 }}>
@@ -692,7 +692,7 @@ export default function MatchesDashboard() {
                 {isOpen && (
                   <div style={{
                     display: 'grid', gap: '14px',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
                     padding: '14px', background: 'rgba(255,255,255,0.015)',
                     border: '1px solid var(--border)', borderTop: 'none',
                     borderRadius: '0 0 12px 12px', animation: 'fadeIn 0.15s ease',
@@ -759,7 +759,7 @@ export default function MatchesDashboard() {
                 {isOpen && (
                   <div style={{
                     display: 'grid', gap: '14px',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
                     padding: '14px', background: 'rgba(255,255,255,0.015)',
                     border: '1px solid var(--border)', borderTop: 'none',
                     borderRadius: '0 0 12px 12px',

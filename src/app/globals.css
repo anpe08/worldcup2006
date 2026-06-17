@@ -221,3 +221,126 @@ select option {
   width: auto;
   border-radius: 6px;
 }
+
+/* ── Mobile (≤768px) ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .container {
+    padding: 20px 16px;
+  }
+
+  .glass-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  /* Suppress the hover lift on touch devices */
+  .glass-card:hover {
+    transform: none;
+  }
+
+  .btn-primary {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+
+  /* Prevent iOS Safari from zooming on input focus */
+  .input-field,
+  select,
+  input[type="number"],
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    font-size: 16px !important;
+  }
+
+  .page-title {
+    font-size: 1.8rem;
+  }
+
+  .page-subtitle {
+    font-size: 1rem;
+    margin-bottom: 24px;
+  }
+
+  .no-user-banner {
+    margin-top: 20px;
+    padding: 16px 20px;
+    font-size: 1rem;
+  }
+
+  /* Navbar becomes taller to fit hamburger + user selector */
+  .navbar {
+    padding: 0 16px;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: var(--nav-height);
+  }
+
+  /* Nav links hidden by default — Navigation.js JS toggles .nav-open */
+  .nav-links {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    gap: 0;
+    padding: 8px 0 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+  }
+
+  .nav-links.nav-open {
+    display: flex;
+  }
+
+  .nav-link {
+    padding: 12px 4px;
+    font-size: 1rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Remove the bottom-bar active indicator on mobile (doesn't fit) */
+  .nav-link[data-active="true"]::after {
+    display: none;
+  }
+
+  .nav-link[data-active="true"] {
+    color: var(--primary);
+  }
+
+  /* Touch-friendly scroll hint for wide tables */
+  .table-scroll-wrapper {
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+  }
+
+  .table-scroll-wrapper::after {
+    content: 'scroll →';
+    position: sticky;
+    right: 0;
+    bottom: 8px;
+    display: block;
+    width: fit-content;
+    margin-left: auto;
+    margin-top: 6px;
+    padding: 2px 8px;
+    background: rgba(94, 106, 210, 0.7);
+    border-radius: 99px;
+    font-size: 0.72rem;
+    color: white;
+    pointer-events: none;
+    opacity: 0.85;
+  }
+}
+
+/* Safe-area insets for notched iPhones */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .navbar {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+}

@@ -38,7 +38,7 @@ function TextCell({ value }) {
 
 function UserTable({ rows, columns, userId, renderCell }) {
   return (
-    <div style={{ overflowX: 'auto', borderRadius: '14px', border: '1px solid var(--border)' }}>
+    <div className="table-scroll-wrapper" style={{ overflowX: 'auto', borderRadius: '14px', border: '1px solid var(--border)' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem', minWidth: '600px' }}>
         <thead>
           <tr style={{ background: 'rgba(94,106,210,0.1)', borderBottom: '1px solid var(--border)' }}>
