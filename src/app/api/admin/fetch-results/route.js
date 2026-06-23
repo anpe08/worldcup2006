@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { spawn } from 'child_process';
 import path from 'path';
+import { requireAdmin } from '@/lib/adminAuth';
 
 function runScript(scriptPath, env) {
   return new Promise((resolve) => {
@@ -19,14 +20,18 @@ function runScript(scriptPath, env) {
   });
 }
 
-export async function POST() {
+export async function POST(request) {
+  const deny = requireAdmin(request);
+  if (deny) return deny;
+
   const env = { ...process.env };
-  const [results, goalscorers] = await Promise.all([
+  const [results, goalscorers, groups] = await Promise.all([
     runScript(path.join(process.cwd(), 'scripts', 'fetch-results.mjs'), env),
     runScript(path.join(process.cwd(), 'scripts', 'fetch-goalscorers.mjs'), env),
+    runScript(path.join(process.cwd(), 'scripts', 'fetch-groups.mjs'), env),
   ]);
 
-  const ok = results.ok && goalscorers.ok;
-  const log = `--- Match Results ---\n${results.log}\n--- Goalscorers ---\n${goalscorers.log}`;
+  const ok = results.ok && goalscorers.ok && groups.ok;
+  const log = `--- Match Results ---\n${results.log}\n--- Goalscorers ---\n${goalscorers.log}\n--- Group Rankings ---\n${groups.log}`;
   return NextResponse.json({ ok, log }, { status: ok ? 200 : 500 });
 }

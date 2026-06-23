@@ -2,8 +2,6 @@
 import { useState, useEffect } from 'react';
 import Flag from '../components/Flag';
 
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
-
 const TOURNAMENT_GROUPS = {
   A: ['Mexico', 'South Korea', 'South Africa', 'Czechia'],
   B: ['Canada', 'Switzerland', 'Qatar', 'Bosnia and Herzegovina'],
@@ -25,6 +23,7 @@ export default function AdminHub() {
   const [authed, setAuthed] = useState(false);
   const [pwInput, setPwInput] = useState('');
   const [pwError, setPwError] = useState(false);
+  const [logging, setLogging] = useState(false);
 
   const [matches, setMatches] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -41,9 +40,38 @@ export default function AdminHub() {
   const [savingScorer, setSavingScorer] = useState({});
   const [savedScorer, setSavedScorer] = useState({});
 
+  // Check for an existing valid session on mount
+  useEffect(() => {
+    fetch('/api/admin/auth').then(r => { if (r.ok) setAuthed(true); });
+  }, []);
+
+  const handleLogin = async () => {
+    setLogging(true);
+    setPwError(false);
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwInput }),
+      });
+      if (res.ok) setAuthed(true);
+      else { setPwError(true); setPwInput(''); }
+    } catch {
+      setPwError(true);
+    } finally {
+      setLogging(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await fetch('/api/admin/auth', { method: 'DELETE' });
+    setAuthed(false);
+    setPwInput('');
+  };
+
   useEffect(() => {
     if (!authed) return;
-    fetch('/api/matches').then(r => r.json()).then(data => setMatches(data));
+    fetch('/api/matches').then(r => r.json()).then(data => setMatches(Array.isArray(data) ? data : (data.matches ?? [])));
     fetch('/api/admin/actual_groups').then(r => r.json()).then(data => {
       const mapped = Object.keys(TOURNAMENT_GROUPS).map(g => ({
         group_name: g, actual_1st: '', actual_2nd: '', actual_3rd: ''
@@ -77,7 +105,7 @@ export default function AdminHub() {
     });
     setSavingMatches(prev => ({ ...prev, [match.id]: 'done' }));
     setTimeout(() => setSavingMatches(prev => { const n = { ...prev }; delete n[match.id]; return n; }), 2000);
-    fetch('/api/matches').then(r => r.json()).then(data => setMatches(data));
+    fetch('/api/matches').then(r => r.json()).then(data => setMatches(Array.isArray(data) ? data : (data.matches ?? [])));
   };
 
   const updateMatchField = (id, field, value) => {
@@ -128,15 +156,16 @@ export default function AdminHub() {
             placeholder="Enter admin password..."
             value={pwInput}
             onChange={e => { setPwInput(e.target.value); setPwError(false); }}
-            onKeyDown={e => { if (e.key === 'Enter') { if (pwInput === ADMIN_PASSWORD) setAuthed(true); else setPwError(true); }}}
+            onKeyDown={e => { if (e.key === 'Enter') handleLogin(); }}
             style={{ borderColor: pwError ? '#ef4444' : undefined }}
           />
           {pwError && <p style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '-8px' }}>Incorrect password.</p>}
           <button
             className="btn-primary"
-            onClick={() => { if (pwInput === ADMIN_PASSWORD) setAuthed(true); else setPwError(true); }}
+            onClick={handleLogin}
+            disabled={logging}
           >
-            Unlock Admin Hub
+            {logging ? 'Verifying…' : 'Unlock Admin Hub'}
           </button>
         </div>
       </div>
@@ -150,7 +179,12 @@ export default function AdminHub() {
 
   return (
     <div>
-      <h1 className="page-title-danger">⚠️ Admin Hub</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+        <h1 className="page-title-danger" style={{ margin: 0 }}>⚠️ Admin Hub</h1>
+        <button onClick={handleLogout} style={{ padding: '6px 14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>
+          Lock 🔒
+        </button>
+      </div>
       <p className="page-subtitle">Changes here update official results and recalculate everyone's scores instantly.</p>
 
       {/* Group tab selector */}

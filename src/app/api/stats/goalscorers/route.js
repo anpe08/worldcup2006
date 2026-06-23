@@ -32,6 +32,7 @@ export async function GET() {
       topScorers: topGoals > 0 ? topScorerRes.rows.map(r => ({ name: r.player_name, goals: topGoals })) : [],
     });
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }

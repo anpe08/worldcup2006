@@ -143,7 +143,7 @@ function MiniLeaderboard({ board, userId }) {
                       {isMe && <span style={{ marginLeft: 5, fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 700 }}>you</span>}
                     </span>
                   </div>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: i2 === 0 ? '#F59E0B' : 'var(--primary)' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: miniRanks[i2] === 1 ? '#F59E0B' : 'var(--primary)' }}>
                     {formatPts(total)}
                   </span>
                 </div>

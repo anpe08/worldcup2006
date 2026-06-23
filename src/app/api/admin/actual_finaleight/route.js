@@ -1,16 +1,24 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { requireAdmin } from '@/lib/adminAuth';
 
-export async function GET() {
+export async function GET(request) {
+  const deny = requireAdmin(request);
+  if (deny) return deny;
+
   try {
-    const res = await query(`SELECT * FROM actual_final_eight WHERE id = 1`);
+    const res = await query('SELECT * FROM actual_final_eight WHERE id = 1');
     return NextResponse.json(res.rows[0] || {});
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('[actual_finaleight GET]', err);
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }
 
 export async function POST(request) {
+  const deny = requireAdmin(request);
+  if (deny) return deny;
+
   const body = await request.json();
   const { winner, silver, bronze, fourth, qf1, qf2, qf3, qf4, top_scorer, top_country, shared_top_scorer_count, shared_top_country_count } = body;
   try {
@@ -27,6 +35,7 @@ export async function POST(request) {
         shared_top_scorer_count||1, shared_top_country_count||1]);
     return NextResponse.json({ success: true });
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('[actual_finaleight POST]', err);
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }

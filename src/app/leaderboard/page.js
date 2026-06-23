@@ -54,7 +54,7 @@ function CategoryNumbers({ row, leaders }) {
       {nums.map(n => (
         <span key={n.key} style={{ fontSize: '0.73rem', color: n.color, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
           {n.icon} {formatPts(n.val)}
-          {leaders[n.key] === row.participant_id && n.val > 0 && (
+          {leaders[n.key]?.includes(row.participant_id) && n.val > 0 && (
             <span title={`Leading in this category`} style={{ fontSize: '0.65rem', marginLeft: 1 }}>★</span>
           )}
         </span>
@@ -168,17 +168,18 @@ export default function Leaderboard() {
   const lastPts = board.length > 0 ? parseFloat(board[board.length - 1]?.total_points) || 0 : 0;
   const spread = leaderPts - lastPts;
 
-  // Category leaders: participant_id of the highest scorer in each category
+  // Category leaders: all participant_ids tied for the highest score in each category
   const leaders = {};
   if (board.length > 0) {
-    const catMax = (key, parse = Number) => board.reduce((best, r) => {
-      const v = parse(r[key]) || 0;
-      return v > (parse(best[key]) || 0) ? r : best;
-    }, board[0]);
-    const ml = catMax('match_pts'); if (Number(ml.match_pts) > 0) leaders.match = ml.participant_id;
-    const gl = catMax('group_rank_pts'); if (Number(gl.group_rank_pts) > 0) leaders.group = gl.participant_id;
-    const fl = catMax('final_eight_pts'); if (Number(fl.final_eight_pts) > 0) leaders.final = fl.participant_id;
-    const goalL = catMax('goalscorer_pts', parseFloat); if ((parseFloat(goalL.goalscorer_pts) || 0) > 0) leaders.goal = goalL.participant_id;
+    const catMaxAll = (key, parse = Number) => {
+      const maxVal = board.reduce((m, r) => Math.max(m, parse(r[key]) || 0), 0);
+      if (maxVal === 0) return [];
+      return board.filter(r => (parse(r[key]) || 0) === maxVal).map(r => r.participant_id);
+    };
+    leaders.match = catMaxAll('match_pts');
+    leaders.group = catMaxAll('group_rank_pts');
+    leaders.final = catMaxAll('final_eight_pts');
+    leaders.goal = catMaxAll('goalscorer_pts', parseFloat);
   }
 
   // Map username → winner/scorer for inline chips
@@ -285,9 +286,9 @@ export default function Leaderboard() {
             )}
             {board.map((row, index) => {
               const isMe = row.participant_id === userId;
-              const isLeader = index === 0;
               const rank = ranksArr[index];
               const tied = isTied(index);
+              const isLeader = rank === 1;
               const total = parseFloat(row.total_points) || 0;
               const gap = total - leaderPts;
               const myWinner = winnerByUser[row.username];
@@ -389,12 +390,12 @@ export default function Leaderboard() {
                       { key: 'group', icon: '🏟', label: 'Groups', color: CAT_COLORS.group },
                       { key: 'final', icon: '8️⃣', label: 'Final 8', color: CAT_COLORS.final },
                       { key: 'goal', icon: '🎯', label: 'Goalscorer', color: CAT_COLORS.goal },
-                    ].filter(c => leaders[c.key]).map(c => {
-                      const leader = board.find(r => r.participant_id === leaders[c.key]);
+                    ].filter(c => leaders[c.key]?.length > 0).map(c => {
+                      const names = leaders[c.key].map(id => board.find(r => r.participant_id === id)?.username).filter(Boolean);
                       return (
                         <span key={c.key} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <span style={{ color: c.color }}>{c.icon} {c.label}:</span>
-                          <span style={{ color: 'white', fontWeight: 700 }}>{leader?.username}</span>
+                          <span style={{ color: 'white', fontWeight: 700 }}>{names.join(', ')}</span>
                         </span>
                       );
                     })}

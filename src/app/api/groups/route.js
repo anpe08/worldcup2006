@@ -9,7 +9,8 @@ export async function GET(request) {
     const res = await query(`SELECT * FROM group_predictions WHERE participant_id = $1`, [userId]);
     return NextResponse.json(res.rows || []);
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }
 
@@ -32,6 +33,7 @@ export async function POST(request) {
     }
     return NextResponse.json({ success: true });
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }

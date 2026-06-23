@@ -16,6 +16,7 @@ export async function GET(request) {
     );
     return NextResponse.json(res.rows.map(r => r.name));
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }

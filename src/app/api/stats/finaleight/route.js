@@ -51,6 +51,7 @@ export async function GET() {
       top_country:      grouped.top_country  || [],
     });
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }

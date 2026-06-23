@@ -10,7 +10,8 @@ export async function GET(request) {
     const res = await query(`SELECT * FROM goalscorer_predictions WHERE participant_id = $1`, [userId]);
     return NextResponse.json(res.rows[0] || {});
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }
 
@@ -50,6 +51,7 @@ export async function POST(request) {
     `, [participant_id, player_1, player_2, player_3]);
     return NextResponse.json({ success: true });
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }

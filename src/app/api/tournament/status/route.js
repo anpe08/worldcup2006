@@ -22,6 +22,7 @@ export async function GET(request) {
 
     return NextResponse.json({ locked, firstKickoff, exempt: false });
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }
