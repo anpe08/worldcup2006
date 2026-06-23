@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { signAdminToken, verifyAdminToken, getAdminToken, ADMIN_COOKIE } from '@/lib/adminAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
 
-const COOKIE_ATTRS = `HttpOnly; Path=/; SameSite=Strict; Max-Age=${8 * 60 * 60}`;
+const COOKIE_ATTRS = `HttpOnly; Secure; Path=/; SameSite=Strict; Max-Age=${8 * 60 * 60}`;
 
 // GET — check whether the current session is valid (used by the admin page on mount)
 export async function GET(request) {
