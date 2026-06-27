@@ -42,22 +42,35 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized. Invalid PIN code.' }, { status: 401 });
     }
 
-    // Check if this participant has a late-entry exemption
-    const exemptRes = await query(
-      'SELECT predictions_exempt FROM participants WHERE id = $1',
-      [participant_id]
+    // Fetch match info upfront — needed for both lock checks and group recalc
+    const matchInfoRes = await query(
+      'SELECT group_name, status, kickoff_time FROM matches WHERE id = $1',
+      [match_id]
     );
-    const isExempt = exemptRes.rows[0]?.predictions_exempt ?? false;
-
-    if (!isExempt && await isTournamentLocked()) {
-      return NextResponse.json({ error: 'Predictions are locked — the tournament has started.' }, { status: 403 });
+    if (matchInfoRes.rows.length === 0) {
+      return NextResponse.json({ error: 'Match not found.' }, { status: 404 });
     }
+    const matchInfo = matchInfoRes.rows[0];
+    const GROUP_STAGE = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+    const isKnockout = !GROUP_STAGE.includes(matchInfo.group_name);
 
-    // Exempt users cannot predict matches already in progress or completed
-    if (isExempt) {
-      const matchRes = await query('SELECT status FROM matches WHERE id = $1', [match_id]);
-      const matchStatus = matchRes.rows[0]?.status;
-      if (matchStatus === 'completed' || matchStatus === 'in_progress') {
+    if (isKnockout) {
+      // Knockout matches: per-match kickoff lock, open to everyone
+      if (matchInfo.status !== 'pending' || new Date(matchInfo.kickoff_time) <= new Date()) {
+        return NextResponse.json({ error: 'Predictions for this match are now closed.' }, { status: 403 });
+      }
+    } else {
+      // Group stage: global tournament lock applies
+      const exemptRes = await query(
+        'SELECT predictions_exempt FROM participants WHERE id = $1',
+        [participant_id]
+      );
+      const isExempt = exemptRes.rows[0]?.predictions_exempt ?? false;
+
+      if (!isExempt && await isTournamentLocked()) {
+        return NextResponse.json({ error: 'Predictions are locked — the tournament has started.' }, { status: 403 });
+      }
+      if (isExempt && (matchInfo.status === 'completed' || matchInfo.status === 'in_progress')) {
         return NextResponse.json({ error: 'Cannot predict a match that is already live or finished.' }, { status: 403 });
       }
     }
@@ -70,9 +83,8 @@ export async function POST(request) {
       DO UPDATE SET predicted_home_score = $3, predicted_away_score = $4, predicted_outcome = $5
     `, [participant_id, match_id, predicted_home_score, predicted_away_score, predicted_outcome]);
 
-    // Recalculate group standings automatically
-    const matchRes = await query('SELECT group_name FROM matches WHERE id = $1', [match_id]);
-    const groupName = matchRes.rows[0]?.group_name;
+    // Recalculate group standings automatically (group stage only)
+    const groupName = matchInfo.group_name;
 
     if (groupName) {
       const groupMatchesRes = await query(`

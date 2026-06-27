@@ -54,6 +54,11 @@ function CategoryNumbers({ row, leaders }) {
       {nums.map(n => (
         <span key={n.key} style={{ fontSize: '0.73rem', color: n.color, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
           {n.icon} {formatPts(n.val)}
+          {n.key === 'match' && Number(row.match_exact_pts) > 0 && (
+            <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)', fontWeight: 400, marginLeft: 1 }}>
+              ({Number(row.match_exact_pts) / 2} exact)
+            </span>
+          )}
           {leaders[n.key]?.includes(row.participant_id) && n.val > 0 && (
             <span title={`Leading in this category`} style={{ fontSize: '0.65rem', marginLeft: 1 }}>★</span>
           )}
@@ -125,6 +130,9 @@ function PicksAccordion({ title, icon, items, type, expanded, setExpanded }) {
 
 export default function Leaderboard() {
   const [board, setBoard] = useState([]);
+  const [saaliBoard, setSaaliBoard] = useState([]);
+  const [activeTab, setActiveTab] = useState('main');
+  const [isAdmin, setIsAdmin] = useState(false);
   const [picks, setPicks] = useState({ winners: [], topScorers: [] });
   const [userId, setUserId] = useState(null);
   const [loaded, setLoaded] = useState(false);
@@ -147,6 +155,12 @@ export default function Leaderboard() {
     if (id) setUserId(Number(id));
     setLoaded(true);
     fetchBoard();
+    fetch('/api/admin/auth').then(r => {
+      if (r.ok) {
+        setIsAdmin(true);
+        fetch('/api/saali/leaderboard').then(r => r.json()).then(data => setSaaliBoard(data || []));
+      }
+    });
     fetch('/api/finaleight/summary')
       .then(r => r.json())
       .then(data => { if (!data.error) setPicks(data); });
@@ -257,8 +271,86 @@ export default function Leaderboard() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="glass-card table-scroll-wrapper" style={{ overflowX: 'auto', padding: 0, marginBottom: '28px' }}>
+      {/* Game toggle (admin only) */}
+      {isAdmin && (
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '20px' }}>
+          {[{ k: 'main', l: '⚽ Main Game' }, { k: 'saali', l: '🏅 Säälipleijarit' }].map(({ k, l }) => (
+            <button key={k} onClick={() => setActiveTab(k)} style={{
+              padding: '7px 18px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+              border: activeTab === k ? '1px solid rgba(94,106,210,0.5)' : '1px solid var(--border)',
+              background: activeTab === k ? 'rgba(94,106,210,0.2)' : 'transparent',
+              color: activeTab === k ? 'white' : 'var(--text-secondary)',
+              transition: 'all 0.15s ease',
+            }}>{l}</button>
+          ))}
+        </div>
+      )}
+
+      {/* Säälipleijarit leaderboard */}
+      {activeTab === 'saali' && isAdmin && (() => {
+        const saaliRanks = [];
+        saaliBoard.forEach((row, i) => {
+          if (i === 0) { saaliRanks.push(1); return; }
+          const prev = parseFloat(saaliBoard[i - 1].total_points);
+          const cur = parseFloat(row.total_points);
+          saaliRanks.push(cur === prev ? saaliRanks[i - 1] : i + 1);
+        });
+        return (
+          <div className="glass-card table-scroll-wrapper" style={{ overflowX: 'auto', padding: 0, marginBottom: '28px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(0,0,0,0.3)' }}>
+                  <th style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem' }}>Rank</th>
+                  <th style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem' }}>Player</th>
+                  <th style={{ padding: '14px 16px', color: 'var(--primary)', fontWeight: 800, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>Total Pts</th>
+                  <th style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem' }}>Outcome · Exact</th>
+                </tr>
+              </thead>
+              <tbody>
+                {saaliBoard.map((row, i) => {
+                  const rank = saaliRanks[i];
+                  const isLeader = rank === 1;
+                  const isMe = row.participant_id === userId;
+                  const outcomePts = Number(row.outcome_pts);
+                  const exactPts = Number(row.exact_pts);
+                  const total = Number(row.total_points);
+                  return (
+                    <tr key={row.participant_id} style={{
+                      borderBottom: '1px solid var(--border)',
+                      background: isMe ? 'rgba(94,106,210,0.08)' : isLeader ? 'rgba(251,191,36,0.04)' : 'transparent',
+                      borderLeft: isMe ? '3px solid var(--primary)' : isLeader ? '3px solid #F59E0B' : '3px solid transparent',
+                    }}>
+                      <td style={{ padding: '14px 16px', fontWeight: 700, fontSize: '0.9rem', color: isLeader ? '#F59E0B' : 'var(--text-secondary)', width: '60px' }}>
+                        {rank <= 3 ? ['🏆','🥈','🥉'][rank-1] : `#${rank}`}
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.95rem', color: isLeader ? '#F59E0B' : 'white' }}>{row.username}</span>
+                        {isMe && <span style={{ marginLeft: 6, fontSize: '0.7rem', padding: '2px 7px', background: 'rgba(94,106,210,0.2)', borderRadius: 10, color: 'var(--primary)', fontWeight: 700 }}>You</span>}
+                      </td>
+                      <td style={{ padding: '14px 16px', fontWeight: 900, fontSize: '1.15rem', color: isLeader ? '#F59E0B' : 'white', whiteSpace: 'nowrap' }}>
+                        {total}
+                      </td>
+                      <td style={{ padding: '14px 16px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                        <span style={{ color: '#5e6ad2', fontWeight: 600 }}>⚽ {outcomePts}</span>
+                        <span style={{ margin: '0 6px', color: 'rgba(255,255,255,0.2)' }}>·</span>
+                        <span style={{ color: '#10B981', fontWeight: 600 }}>✨ {exactPts / 2} exact ({exactPts} pts)</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {saaliBoard.length === 0 && (
+                  <tr><td colSpan={4} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                    No predictions yet — be the first to play!
+                  </td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
+
+      {/* Main game table */}
+      {activeTab === 'main' && <div className="glass-card table-scroll-wrapper" style={{ overflowX: 'auto', padding: 0, marginBottom: '28px' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(0,0,0,0.3)' }}>
@@ -405,7 +497,7 @@ export default function Leaderboard() {
             </tfoot>
           )}
         </table>
-      </div>
+      </div>}
 
       {/* Beer Pool */}
       {Object.values(beerMap).some(Boolean) && (() => {

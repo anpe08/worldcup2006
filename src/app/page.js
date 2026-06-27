@@ -287,6 +287,7 @@ export default function MatchesDashboard() {
   const [userExempt, setUserExempt] = useState(false);
   const [viewMode, setViewMode] = useState('date');
   const [openGroupSections, setOpenGroupSections] = useState({});
+  const [isAdmin, setIsAdmin] = useState(false);
   const [refreshState, setRefreshState] = useState('idle'); // idle | loading | done | error
   const [lastRefresh, setLastRefresh] = useState(null);
   const [cooldown, setCooldown] = useState(0);
@@ -316,6 +317,7 @@ export default function MatchesDashboard() {
     if (id) { setUserId(Number(id)); fetchMatches(id); }
     fetch(`/api/tournament/status${id ? `?userId=${id}` : ''}`).then(r => r.json()).then(d => setTournamentLocked(d.locked));
     fetch('/api/leaderboard').then(r => r.json()).then(d => setLeaderboard(d || []));
+    fetch('/api/admin/auth').then(r => { if (r.ok) setIsAdmin(true); });
   }, []);
 
   // Poll every 60s while any match is in_progress so the card auto-flips to completed
@@ -434,12 +436,18 @@ export default function MatchesDashboard() {
     return elapsedMs >= 0 && elapsedMs <= 1000 * 60 * 95;
   };
 
+  const GROUP_STAGE = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+  const ROUND_LABELS = { R32: 'Round of 32', QF: 'Quarter-Finals', SF: 'Semi-Finals', F: 'Final' };
+
   const renderMatchCard = (m) => {
     const now = new Date();
     const kickoffDate = new Date(m.kickoff_time);
-    const isPast = userExempt
-      ? ['completed', 'in_progress'].includes(String(m.status))
-      : tournamentLocked || kickoffDate <= now;
+    const isKnockout = !GROUP_STAGE.includes(m.group_name);
+    const isPast = isKnockout
+      ? m.status !== 'pending' || kickoffDate <= now
+      : userExempt
+        ? ['completed', 'in_progress'].includes(String(m.status))
+        : tournamentLocked || kickoffDate <= now;
     const isLive = isMatchLive(m, now);
     const badge = viewMode === 'group'
       ? kickoffDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
@@ -579,7 +587,7 @@ export default function MatchesDashboard() {
     <div>
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
-        <h1 className="page-title" style={{ marginBottom: '6px' }}>Group Stage</h1>
+        <h1 className="page-title" style={{ marginBottom: '6px' }}>Matches</h1>
         {tournamentLocked && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 18px', marginBottom: '16px', background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '12px' }}>
             <span style={{ fontSize: '1.3rem' }}>🔒</span>
@@ -602,6 +610,7 @@ export default function MatchesDashboard() {
               ↓ Jump to Today
             </button>
           )}
+          {isAdmin && (
           <button
             disabled={refreshState === 'loading' || cooldown > 0}
             onClick={async () => {
@@ -632,12 +641,13 @@ export default function MatchesDashboard() {
           >
             {refreshState === 'loading' ? '⏳ Fetching…' : refreshState === 'done' ? '✅ Done!' : refreshState === 'error' ? '❌ Failed' : cooldown > 0 ? `⏱ Wait ${cooldown}s` : '🔄 Refresh Results'}
           </button>
+          )}
         </p>
       </div>
 
       {/* View toggle */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '24px' }}>
-        {[{ k: 'date', l: '📅 By Date' }, { k: 'group', l: '🏟 By Group' }].map(({ k, l }) => (
+        {[{ k: 'date', l: '📅 By Date' }, { k: 'group', l: '🏟 By Group/Round' }].map(({ k, l }) => (
           <button key={k} onClick={() => setViewMode(k)} style={{
             padding: '6px 18px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 600,
             border: viewMode === k ? '1px solid rgba(94,106,210,0.5)' : '1px solid var(--border)',
@@ -675,10 +685,12 @@ export default function MatchesDashboard() {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', flexShrink: 0 }}>{isOpen ? '▼' : '▶'}</span>
-                    <span style={{ fontWeight: 800, color: 'white', fontSize: '0.95rem', flexShrink: 0 }}>Group {key}</span>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {teams.join(' · ')}
-                    </span>
+                    <span style={{ fontWeight: 800, color: 'white', fontSize: '0.95rem', flexShrink: 0 }}>{ROUND_LABELS[key] ?? `Group ${key}`}</span>
+                    {!ROUND_LABELS[key] && (
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {teams.filter(t => t !== 'TBD').join(' · ')}
+                      </span>
+                    )}
                   </div>
                   <div style={{ fontSize: '0.78rem', flexShrink: 0, marginLeft: '10px' }}>
                     {allDone

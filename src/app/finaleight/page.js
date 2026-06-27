@@ -120,7 +120,7 @@ export default function FinalEight() {
     },
     {
       title: '🎯 Individual Awards',
-      subtitle: 'Big bonus points — 5 pts for Golden Boot, 10 pts for Top Country!',
+      subtitle: 'Big bonus points — 5 pts for Golden Boot, 5 pts for Top Country!',
       fields: [
         { field: 'top_scorer', label: '👟 Golden Boot (top goalscorer player)', isPlayer: true },
         { field: 'top_country', label: '🌍 Top Scoring Country (most team goals)', isCountry: true },
@@ -179,7 +179,7 @@ export default function FinalEight() {
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
             <span style={{ color: 'white', fontWeight: 700, minWidth: 140 }}>🌍 Top Country</span>
-            <span style={{ color: '#10B981', fontWeight: 700 }}>10 pts</span>
+            <span style={{ color: '#10B981', fontWeight: 700 }}>5 pts</span>
             <span style={{ color: 'var(--text-secondary)' }}>if your pick scores the most goals</span>
           </div>
         </div>

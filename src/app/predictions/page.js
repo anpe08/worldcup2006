@@ -52,6 +52,8 @@ export default function Predictions() {
   const [username, setUsername] = useState('');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [saaliData, setSaaliData] = useState(null);
 
   useEffect(() => {
     const id = localStorage.getItem('simUserId');
@@ -61,6 +63,12 @@ export default function Predictions() {
       .then(r => r.json())
       .then(rows => { if (Array.isArray(rows)) setData(pivot(rows)); })
       .finally(() => setLoading(false));
+    fetch('/api/admin/auth').then(r => {
+      if (r.ok) {
+        setIsAdmin(true);
+        fetch('/api/saali/predictions').then(r => r.json()).then(d => { if (!d.error) setSaaliData(d); });
+      }
+    });
   }, []);
 
   if (!userId) {
@@ -227,6 +235,81 @@ export default function Predictions() {
           );
         })}
       </div>
+
+      {/* Säälipleijarit predictions matrix */}
+      {isAdmin && saaliData && (() => {
+        const { matches, participants, predictions } = saaliData;
+        if (!matches || matches.length === 0) return null;
+        const matchesWithPreds = matches.filter(m => participants.some(p => predictions[p.id]?.[m.id]));
+        if (matchesWithPreds.length === 0) return (
+          <div style={{ marginTop: '32px' }}>
+            <h1 className="page-title" style={{ fontSize: '1.3rem' }}>🏅 Säälipleijarit Predictions</h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No predictions submitted yet.</p>
+          </div>
+        );
+        return (
+          <div style={{ marginTop: '40px' }}>
+            <h1 className="page-title" style={{ fontSize: '1.3rem', marginBottom: '6px' }}>🏅 Säälipleijarit Predictions</h1>
+            <p className="page-subtitle" style={{ marginBottom: '24px' }}>All säälipleijarit picks — only matches with at least one prediction shown.</p>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', minWidth: '500px' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', color: 'var(--text-secondary)', fontWeight: 600, minWidth: '160px', position: 'sticky', left: 0, background: 'var(--bg)', zIndex: 1 }}>Match</th>
+                    {participants.map(p => (
+                      <th key={p.id} style={{ padding: '4px 6px', textAlign: 'center', minWidth: '60px' }}>
+                        <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', display: 'inline-block', fontSize: '0.75rem', fontWeight: 700, color: String(p.id) === String(userId) ? 'var(--primary)' : 'var(--text-secondary)', padding: '4px 0', maxHeight: '80px', overflow: 'hidden' }}>
+                          {p.username}
+                        </span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {matchesWithPreds.map(m => {
+                    const kickoffDate = new Date(m.kickoff_time);
+                    const showPreds = m.status === 'completed' || m.status === 'in_progress' || kickoffDate <= new Date();
+                    const actualOutcome = m.actual_outcome;
+                    const dateStr = kickoffDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                    return (
+                      <tr key={m.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td style={{ padding: '8px 10px', position: 'sticky', left: 0, background: 'var(--bg)', zIndex: 1 }}>
+                          <div style={{ fontWeight: 600, color: 'white', fontSize: '0.8rem' }}>{m.team_home} vs {m.team_away}</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                            {dateStr}
+                            {m.actual_home_score != null && <span style={{ marginLeft: 6, color: '#10B981', fontWeight: 700 }}>{m.actual_home_score}–{m.actual_away_score}</span>}
+                          </div>
+                        </td>
+                        {participants.map(p => {
+                          const pred = predictions[p.id]?.[m.id];
+                          if (!pred || !showPreds) {
+                            return <td key={p.id} style={{ padding: '8px 6px', textAlign: 'center', color: 'rgba(255,255,255,0.15)' }}>—</td>;
+                          }
+                          const exact = pred.predicted_home_score === m.actual_home_score && pred.predicted_away_score === m.actual_away_score;
+                          const outcomeOk = pred.predicted_outcome === actualOutcome && actualOutcome;
+                          const cellBg = m.status === 'completed'
+                            ? exact ? 'rgba(16,185,129,0.2)' : outcomeOk ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'
+                            : 'transparent';
+                          const cellColor = m.status === 'completed'
+                            ? exact ? '#10B981' : outcomeOk ? 'rgba(16,185,129,0.7)' : '#ef4444'
+                            : 'white';
+                          return (
+                            <td key={p.id} style={{ padding: '8px 6px', textAlign: 'center', background: cellBg }}>
+                              <span style={{ color: cellColor, fontWeight: 600 }}>
+                                {pred.predicted_home_score}–{pred.predicted_away_score}
+                              </span>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
