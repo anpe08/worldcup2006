@@ -22,6 +22,7 @@ export async function GET() {
         COUNT(sp.id) FILTER (WHERE sp.predicted_home_score = m.actual_home_score AND sp.predicted_away_score = m.actual_away_score AND m.actual_home_score IS NOT NULL) AS exact_count
       FROM matches m
       LEFT JOIN saali_predictions sp ON sp.match_id = m.id
+      WHERE m.group_name NOT IN ('A','B','C','D','E','F','G','H','I','J','K','L')
       GROUP BY m.id
       ORDER BY m.kickoff_time ASC
     `);
