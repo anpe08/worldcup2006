@@ -578,7 +578,7 @@ export default function MatchesDashboard() {
           </button>
         )}
 
-        <CommunityPredictions matchId={m.id} teamHome={m.team_home} teamAway={m.team_away} kickoffTime={m.kickoff_time} status={m.status} tournamentLocked={tournamentLocked} />
+        <CommunityPredictions matchId={m.id} teamHome={m.team_home} teamAway={m.team_away} kickoffTime={m.kickoff_time} status={m.status} tournamentLocked={GROUP_STAGE.includes(m.group_name) ? tournamentLocked : false} />
       </div>
     );
   };
