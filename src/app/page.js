@@ -420,12 +420,12 @@ export default function MatchesDashboard() {
   );
 
   // ── Logged in ──
-  const grouped = groupByDate(matches);
+  const grouped = groupByDate(gsMatches);
   const dateKeys = Object.keys(grouped).sort();
-  const groupedByGroup = groupByGroup(matches);
+  const groupedByGroup = groupByGroup(gsMatches);
   const groupKeys = Object.keys(groupedByGroup).sort();
   const today = localDateKey(new Date());
-  const totalPredicted = matches.filter(m => m.predicted_outcome).length;
+  const totalPredicted = gsMatches.filter(m => m.predicted_outcome).length;
 
   const isMatchLive = (match, now) => {
     const kickoffDate = new Date(match.kickoff_time);
@@ -437,15 +437,13 @@ export default function MatchesDashboard() {
   };
 
   const GROUP_STAGE = ['A','B','C','D','E','F','G','H','I','J','K','L'];
-  const ROUND_LABELS = { R32: 'Round of 32', QF: 'Quarter-Finals', SF: 'Semi-Finals', F: 'Final' };
+  // Knockout rounds belong to Säälipleijarit — only show group stage here
+  const gsMatches = matches.filter(m => GROUP_STAGE.includes(m.group_name));
 
   const renderMatchCard = (m) => {
     const now = new Date();
     const kickoffDate = new Date(m.kickoff_time);
-    const isKnockout = !GROUP_STAGE.includes(m.group_name);
-    const isPast = isKnockout
-      ? m.status !== 'pending' || kickoffDate <= now
-      : userExempt
+    const isPast = userExempt
         ? ['completed', 'in_progress'].includes(String(m.status))
         : tournamentLocked || kickoffDate <= now;
     const isLive = isMatchLive(m, now);
@@ -578,7 +576,7 @@ export default function MatchesDashboard() {
           </button>
         )}
 
-        <CommunityPredictions matchId={m.id} teamHome={m.team_home} teamAway={m.team_away} kickoffTime={m.kickoff_time} status={m.status} tournamentLocked={GROUP_STAGE.includes(m.group_name) ? tournamentLocked : false} />
+        <CommunityPredictions matchId={m.id} teamHome={m.team_home} teamAway={m.team_away} kickoffTime={m.kickoff_time} status={m.status} tournamentLocked={tournamentLocked} />
       </div>
     );
   };
@@ -600,7 +598,7 @@ export default function MatchesDashboard() {
         <p className="page-subtitle" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           1 pt outcome · 2 pts exact score · predictions revealed at kickoff
           <span style={{ padding: '3px 12px', background: 'rgba(94,106,210,0.15)', borderRadius: 20, fontSize: '0.82rem', color: 'var(--primary)', fontWeight: 700 }}>
-            {totalPredicted}/{matches.length} predicted
+            {totalPredicted}/{gsMatches.length} predicted
           </span>
           {viewMode === 'date' && dateKeys.some(k => k === today) && (
             <button
@@ -647,7 +645,7 @@ export default function MatchesDashboard() {
 
       {/* View toggle */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '24px' }}>
-        {[{ k: 'date', l: '📅 By Date' }, { k: 'group', l: '🏟 By Group/Round' }].map(({ k, l }) => (
+        {[{ k: 'date', l: '📅 By Date' }, { k: 'group', l: '🏟 By Group' }].map(({ k, l }) => (
           <button key={k} onClick={() => setViewMode(k)} style={{
             padding: '6px 18px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 600,
             border: viewMode === k ? '1px solid rgba(94,106,210,0.5)' : '1px solid var(--border)',
@@ -685,12 +683,10 @@ export default function MatchesDashboard() {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', flexShrink: 0 }}>{isOpen ? '▼' : '▶'}</span>
-                    <span style={{ fontWeight: 800, color: 'white', fontSize: '0.95rem', flexShrink: 0 }}>{ROUND_LABELS[key] ?? `Group ${key}`}</span>
-                    {!ROUND_LABELS[key] && (
-                      <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {teams.filter(t => t !== 'TBD').join(' · ')}
-                      </span>
-                    )}
+                    <span style={{ fontWeight: 800, color: 'white', fontSize: '0.95rem', flexShrink: 0 }}>Group {key}</span>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {teams.filter(t => t !== 'TBD').join(' · ')}
+                    </span>
                   </div>
                   <div style={{ fontSize: '0.78rem', flexShrink: 0, marginLeft: '10px' }}>
                     {allDone
@@ -788,7 +784,7 @@ export default function MatchesDashboard() {
         {/* Sticky Sidebar */}
         <div style={{ position: wide ? 'sticky' : 'static', top: '24px', alignSelf: 'start' }}>
           <MiniLeaderboard board={leaderboard} userId={userId} />
-          <PredictionStats matches={matches} />
+          <PredictionStats matches={gsMatches} />
           <QuickLinks />
         </div>
       </div>

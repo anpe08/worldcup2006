@@ -55,10 +55,7 @@ export async function POST(request) {
     const isKnockout = !GROUP_STAGE.includes(matchInfo.group_name);
 
     if (isKnockout) {
-      // Knockout matches: per-match kickoff lock, open to everyone
-      if (matchInfo.status !== 'pending' || new Date(matchInfo.kickoff_time) <= new Date()) {
-        return NextResponse.json({ error: 'Predictions for this match are now closed.' }, { status: 403 });
-      }
+      return NextResponse.json({ error: 'Knockout predictions go in Säälipleijarit.' }, { status: 403 });
     } else {
       // Group stage: global tournament lock applies
       const exemptRes = await query(
