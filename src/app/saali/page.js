@@ -287,7 +287,8 @@ export default function SaaliPage() {
       <div style={{ marginBottom: '28px' }}>
         <h1 className="page-title" style={{ marginBottom: '6px' }}>🏅 Säälipleijarit</h1>
         <p className="page-subtitle" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          1 pt outcome · 2 pts extra for exact score · locks at kickoff
+          <em style={{ color: 'rgba(255,255,255,0.45)', fontStyle: 'italic', marginRight: '4px' }}>Dignity is optional. Points are not.</em>
+          1 pt outcome · 2 pts extra for exact score · locks 15 min before kickoff
           {upcoming.length > 0 && (
             <span style={{ padding: '3px 12px', background: 'rgba(94,106,210,0.15)', borderRadius: 20, fontSize: '0.82rem', color: 'var(--primary)', fontWeight: 700 }}>
               {totalPredicted}/{upcoming.length} upcoming predicted
