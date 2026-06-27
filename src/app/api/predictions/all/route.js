@@ -22,7 +22,7 @@ export async function GET() {
       CROSS JOIN participants pa
       LEFT JOIN predictions p
              ON p.match_id = m.id AND p.participant_id = pa.id
-      WHERE m.group_name IS NOT NULL
+      WHERE m.group_name IN ('A','B','C','D','E','F','G','H','I','J','K','L')
       ORDER BY m.group_name, m.kickoff_time, pa.username ASC
     `);
     return NextResponse.json(res.rows);
