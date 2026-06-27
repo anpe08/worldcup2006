@@ -374,8 +374,6 @@ export default function StatsPage() {
   const [userId, setUserId] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-
   const [matches, setMatches]               = useState([]);
   const [matchesLoading, setMatchesLoading] = useState(true);
 
@@ -392,7 +390,6 @@ export default function StatsPage() {
     const id = localStorage.getItem('simUserId');
     if (id) setUserId(id);
     setLoaded(true);
-    fetch('/api/admin/auth').then(r => { if (r.ok) setIsAdmin(true); });
   }, []);
 
   useEffect(() => {
@@ -426,7 +423,7 @@ export default function StatsPage() {
   }, [activeTab, goalscorers, goalscorersLoading]);
 
   useEffect(() => {
-    if (!loaded || !userId || !isAdmin) return;
+    if (!loaded || !userId) return;
     if (activeTab === 'SAALI' && saaliStats === null && !saaliStatsLoading) {
       setSaaliStatsLoading(true);
       fetch('/api/saali/stats')
@@ -434,7 +431,7 @@ export default function StatsPage() {
         .then(data => { setSaaliStats(Array.isArray(data) ? data : []); setSaaliStatsLoading(false); })
         .catch(() => setSaaliStatsLoading(false));
     }
-  }, [activeTab, saaliStats, saaliStatsLoading, isAdmin]);
+  }, [activeTab, saaliStats, saaliStatsLoading]);
 
   if (loaded && !userId) return (
     <>
@@ -486,7 +483,7 @@ export default function StatsPage() {
       </div>
 
       <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', flexWrap: 'wrap' }}>
-        {[...MAIN_TABS, ...(isAdmin ? [{ key: 'SAALI', label: '🏅 Säälipleijarit' }] : [])].map(({ key, label }) => {
+        {[...MAIN_TABS, { key: 'SAALI', label: '🏅 Säälipleijarit' }].map(({ key, label }) => {
           const isActive = activeTab === key;
           return (
             <button

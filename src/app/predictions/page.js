@@ -52,7 +52,6 @@ export default function Predictions() {
   const [username, setUsername] = useState('');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [saaliData, setSaaliData] = useState(null);
 
   useEffect(() => {
@@ -63,12 +62,7 @@ export default function Predictions() {
       .then(r => r.json())
       .then(rows => { if (Array.isArray(rows)) setData(pivot(rows)); })
       .finally(() => setLoading(false));
-    fetch('/api/admin/auth').then(r => {
-      if (r.ok) {
-        setIsAdmin(true);
-        fetch('/api/saali/predictions').then(r => r.json()).then(d => { if (!d.error) setSaaliData(d); });
-      }
-    });
+    fetch('/api/saali/predictions').then(r => r.json()).then(d => { if (!d.error) setSaaliData(d); });
   }, []);
 
   if (!userId) {
@@ -237,7 +231,7 @@ export default function Predictions() {
       </div>
 
       {/* Säälipleijarit predictions matrix */}
-      {isAdmin && saaliData && (() => {
+      {saaliData && (() => {
         const { matches, participants, predictions } = saaliData;
         if (!matches || matches.length === 0) return null;
         const matchesWithPreds = matches.filter(m => participants.some(p => predictions[p.id]?.[m.id]));

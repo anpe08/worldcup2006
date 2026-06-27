@@ -9,7 +9,6 @@ export default function Navigation() {
   const [activeUsername, setActiveUsername] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const pathname = usePathname();
   const menuRef = useRef(null);
 
@@ -20,7 +19,6 @@ export default function Navigation() {
       setActiveId(id);
       setActiveUsername(name || '');
     }
-    fetch('/api/admin/auth').then(r => { if (r.ok) setIsAdmin(true); });
   }, []);
 
   // Close menu on outside click
@@ -70,7 +68,7 @@ export default function Navigation() {
     { href: '/details', label: 'Details' },
     { href: '/stats', label: '📊 Stats' },
     { href: '/leaderboard', label: '🏆 Leaderboard' },
-    ...(isAdmin ? [{ href: '/saali', label: '🏅 Säälipleijarit' }] : []),
+    { href: '/saali', label: '🏅 Säälipleijarit' },
   ];
 
   return (

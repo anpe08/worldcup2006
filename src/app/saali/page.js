@@ -95,7 +95,6 @@ function groupByDate(matches) {
 }
 
 export default function SaaliPage() {
-  const [isAdmin, setIsAdmin] = useState(null); // null = loading
   const [userId, setUserId] = useState(null);
   const [userPin, setUserPin] = useState(null);
   const [matches, setMatches] = useState([]);
@@ -105,26 +104,16 @@ export default function SaaliPage() {
   const todayRef = useRef(null);
 
   useEffect(() => {
-    fetch('/api/admin/auth').then(r => setIsAdmin(r.ok));
-  }, []);
-
-  useEffect(() => {
-    if (isAdmin === null) return;
     const id = localStorage.getItem('simUserId');
     const pin = localStorage.getItem('simUserPin');
     if (id) {
       setUserId(Number(id));
       setUserPin(pin);
     }
-  }, [isAdmin]);
-
-  useEffect(() => {
-    if (!isAdmin) return;
-    const id = localStorage.getItem('simUserId');
     fetch(`/api/saali/matches${id ? `?userId=${id}` : ''}`)
       .then(r => r.json())
       .then(data => setMatches(Array.isArray(data) ? data : []));
-  }, [isAdmin]);
+  }, []);
 
   const handleScoreChange = (matchId, field, value) => {
     setMatches(prev => prev.map(m => {
@@ -164,12 +153,6 @@ export default function SaaliPage() {
       setSavingId(null);
     }
   };
-
-  // Loading state
-  if (isAdmin === null) return null;
-
-  // Not admin — show nothing
-  if (!isAdmin) return null;
 
   const now = new Date();
   const completed = matches.filter(m => m.status === 'completed' || m.status === 'in_progress');

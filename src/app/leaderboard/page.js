@@ -132,7 +132,6 @@ export default function Leaderboard() {
   const [board, setBoard] = useState([]);
   const [saaliBoard, setSaaliBoard] = useState([]);
   const [activeTab, setActiveTab] = useState('main');
-  const [isAdmin, setIsAdmin] = useState(false);
   const [picks, setPicks] = useState({ winners: [], topScorers: [] });
   const [userId, setUserId] = useState(null);
   const [loaded, setLoaded] = useState(false);
@@ -155,12 +154,7 @@ export default function Leaderboard() {
     if (id) setUserId(Number(id));
     setLoaded(true);
     fetchBoard();
-    fetch('/api/admin/auth').then(r => {
-      if (r.ok) {
-        setIsAdmin(true);
-        fetch('/api/saali/leaderboard').then(r => r.json()).then(data => setSaaliBoard(data || []));
-      }
-    });
+    fetch('/api/saali/leaderboard').then(r => r.json()).then(data => setSaaliBoard(data || []));
     fetch('/api/finaleight/summary')
       .then(r => r.json())
       .then(data => { if (!data.error) setPicks(data); });
@@ -271,9 +265,8 @@ export default function Leaderboard() {
         </div>
       </div>
 
-      {/* Game toggle (admin only) */}
-      {isAdmin && (
-        <div style={{ display: 'flex', gap: '6px', marginBottom: '20px' }}>
+      {/* Game toggle */}
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '20px' }}>
           {[{ k: 'main', l: '⚽ Main Game' }, { k: 'saali', l: '🏅 Säälipleijarit' }].map(({ k, l }) => (
             <button key={k} onClick={() => setActiveTab(k)} style={{
               padding: '7px 18px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
@@ -284,10 +277,9 @@ export default function Leaderboard() {
             }}>{l}</button>
           ))}
         </div>
-      )}
 
       {/* Säälipleijarit leaderboard */}
-      {activeTab === 'saali' && isAdmin && (() => {
+      {activeTab === 'saali' && (() => {
         const saaliRanks = [];
         saaliBoard.forEach((row, i) => {
           if (i === 0) { saaliRanks.push(1); return; }
