@@ -420,6 +420,10 @@ export default function MatchesDashboard() {
   );
 
   // ── Logged in ──
+  const GROUP_STAGE = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+  // Knockout rounds belong to Säälipleijarit — only show group stage here
+  const gsMatches = matches.filter(m => GROUP_STAGE.includes(m.group_name));
+
   const grouped = groupByDate(gsMatches);
   const dateKeys = Object.keys(grouped).sort();
   const groupedByGroup = groupByGroup(gsMatches);
@@ -435,10 +439,6 @@ export default function MatchesDashboard() {
     const elapsedMs = now - kickoffDate;
     return elapsedMs >= 0 && elapsedMs <= 1000 * 60 * 95;
   };
-
-  const GROUP_STAGE = ['A','B','C','D','E','F','G','H','I','J','K','L'];
-  // Knockout rounds belong to Säälipleijarit — only show group stage here
-  const gsMatches = matches.filter(m => GROUP_STAGE.includes(m.group_name));
 
   const renderMatchCard = (m) => {
     const now = new Date();
