@@ -115,33 +115,33 @@ export default function AuthModal({ onLoginSuccess }) {
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div style={{
-          display: 'flex',
-          background: 'rgba(255,255,255,0.04)',
-          borderRadius: '10px',
-          padding: '4px',
-          marginBottom: '24px',
-          border: '1px solid rgba(255,255,255,0.05)',
-        }}>
-          <button
-            onClick={() => { setActiveTab('login'); setError(''); setPin(''); }}
-            style={{
-              flex: 1,
-              padding: '14px',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 700,
-              fontSize: '1rem',
-              cursor: 'pointer',
-              background: activeTab === 'login' ? 'var(--primary)' : 'transparent',
-              color: activeTab === 'login' ? 'white' : 'var(--text-secondary)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            Log In
-          </button>
-          {!registrationClosed && (
+        {/* Tab Switcher — only shown when registration is open */}
+        {!registrationClosed && (
+          <div style={{
+            display: 'flex',
+            background: 'rgba(255,255,255,0.04)',
+            borderRadius: '10px',
+            padding: '4px',
+            marginBottom: '24px',
+            border: '1px solid rgba(255,255,255,0.05)',
+          }}>
+            <button
+              onClick={() => { setActiveTab('login'); setError(''); setPin(''); }}
+              style={{
+                flex: 1,
+                padding: '14px',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 700,
+                fontSize: '1rem',
+                cursor: 'pointer',
+                background: activeTab === 'login' ? 'var(--primary)' : 'transparent',
+                color: activeTab === 'login' ? 'white' : 'var(--text-secondary)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              Log In
+            </button>
             <button
               onClick={() => { setActiveTab('register'); setError(''); setPin(''); }}
               style={{
@@ -159,8 +159,8 @@ export default function AuthModal({ onLoginSuccess }) {
             >
               Register Profile
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
