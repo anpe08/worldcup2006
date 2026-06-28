@@ -235,12 +235,12 @@ export default function Navigation() {
       {showAuthModal && <AuthModal onLoginSuccess={handleAuthSuccess} />}
 
       <style>{`
-        @media (min-width: 769px) {
+        @media (min-width: 1025px) {
           .hamburger-btn { display: none !important; }
           .mobile-menu { display: none !important; }
           .desktop-nav-links { display: flex !important; }
         }
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
           .hamburger-btn { display: flex !important; }
           .desktop-nav-links { display: none !important; }
           .playing-as-label { display: none !important; }
